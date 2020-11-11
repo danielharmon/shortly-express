@@ -71,11 +71,12 @@ app.post('/links', (req, res, next) => {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+
 app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', Auth.createSession, (req, res) => {
   models.Users.get({ username: req.body.username })
     .then((response) => {
       return models.Users.compare(
