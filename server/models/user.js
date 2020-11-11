@@ -39,10 +39,14 @@ class Users extends Model {
     let newUser = {
       username,
       salt,
-      password: utils.createHash(password, salt)
+      password: utils.createHash(password, salt),
     };
 
     return super.create.call(this, newUser);
+  }
+
+  get(options) {
+    return super.get.call(this, options);
   }
 }
 
