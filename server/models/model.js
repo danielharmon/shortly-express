@@ -2,15 +2,19 @@ const db = require('../db');
 const _ = require('lodash');
 
 const executeQuery = (query, values) => {
-  return db.queryAsync(query, values).spread(results => results);
+  return db.queryAsync(query, values).spread((results) => results);
 };
 
-const parseData = options => {
-  return _.reduce(options, (parsed, value, key) => {
-    parsed.string.push(`${key} = ?`);
-    parsed.values.push(value);
-    return parsed;
-  }, { string: [], values: [] });
+const parseData = (options) => {
+  return _.reduce(
+    options,
+    (parsed, value, key) => {
+      parsed.string.push(`${key} = ?`);
+      parsed.values.push(value);
+      return parsed;
+    },
+    { string: [], values: [] }
+  );
 };
 
 /**
@@ -37,7 +41,9 @@ class Model {
       return executeQuery(queryString);
     }
     let parsedOptions = parseData(options);
-    let queryString = `SELECT * FROM ${this.tablename} WHERE ${parsedOptions.string.join(' AND ')}`;
+    let queryString = `SELECT * FROM ${
+      this.tablename
+    } WHERE ${parsedOptions.string.join(' AND ')}`;
     return executeQuery(queryString, parsedOptions.values);
   }
 
@@ -51,9 +57,14 @@ class Model {
    * the conditions provided, only one will be provided upon fulfillment.
    */
   get(options) {
+    console.log(options);
     let parsedOptions = parseData(options);
-    let queryString = `SELECT * FROM ${this.tablename} WHERE ${parsedOptions.string.join(' AND ')} LIMIT 1`;
-    return executeQuery(queryString, parsedOptions.values).then(results => results[0]);
+    let queryString = `SELECT * FROM ${
+      this.tablename
+    } WHERE ${parsedOptions.string.join(' AND ')} LIMIT 1`;
+    return executeQuery(queryString, parsedOptions.values).then(
+      (results) => results[0]
+    );
   }
 
   /**
@@ -83,8 +94,13 @@ class Model {
    */
   update(options, values) {
     let parsedOptions = parseData(options);
-    let queryString = `UPDATE ${this.tablename} SET ? WHERE ${parsedOptions.string.join(' AND ')}`;
-    return executeQuery(queryString, Array.prototype.concat(values, parsedOptions.values));
+    let queryString = `UPDATE ${
+      this.tablename
+    } SET ? WHERE ${parsedOptions.string.join(' AND ')}`;
+    return executeQuery(
+      queryString,
+      Array.prototype.concat(values, parsedOptions.values)
+    );
   }
 
   /**
@@ -98,7 +114,9 @@ class Model {
    */
   delete(options) {
     let parsedOptions = parseData(options);
-    let queryString = `DELETE FROM ${this.tablename} WHERE ${parsedOptions.string.join(' AND ')}`;
+    let queryString = `DELETE FROM ${
+      this.tablename
+    } WHERE ${parsedOptions.string.join(' AND ')}`;
     return executeQuery(queryString, parsedOptions.values);
   }
 
