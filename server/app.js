@@ -5,6 +5,7 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
+const parseCookies = require('./middleware/cookieParser');
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(parseCookies);
 
 app.get('/', (req, res) => {
   res.render('index');
@@ -76,23 +78,27 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.post('/login', Auth.createSession, (req, res) => {
-  models.Users.get({ username: req.body.username })
+app.post('/login', (req, res) => {
+  return models.Users.get({ username: req.body.username })
     .then((response) => {
-      return models.Users.compare(
-        req.body.password,
-        response.password,
-        response.salt
-      );
-    })
-    .then((userValid) => {
-      if (userValid) {
-        return res.send('Success!'); //token logic next
+      if (response) {
+        const userValid = models.Users.compare(
+          req.body.password,
+          response.password,
+          response.salt
+        );
+        if (userValid) {
+          return res.redirect('/');
+        } else {
+          return res.redirect('/login');
+        }
+      } else {
+        return res.redirect('/login');
       }
-      return res.redirect('/login');
     })
     .catch((err) => {
-      res.status(500).json({ message: 'Internal server error' });
+      //res.status(500).json({ message: 'Internal server error' });
+      console.log('ERROR BLOCK HIT', err);
     });
 });
 
@@ -101,17 +107,23 @@ app.get('/signup', (req, res) => {
 });
 
 app.post('/signup', (req, res) => {
-  models.Users.create({
-    username: req.body.username,
-    password: req.body.password,
-  })
-    .then(() => {
-      res.status(201).redirect('/login');
-      //add token logic
+  models.Users.get({ username: req.body.username })
+    .then((user) => {
+      if (user) {
+        return res.redirect('/signup');
+      } else {
+        return models.Users.create({
+          username: req.body.username,
+          password: req.body.password,
+        }).then(() => {
+          return res.status(201).redirect('/');
+          //add token logic
+        });
+      }
     })
+
     .catch((err) => console.log(err));
 });
-
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
