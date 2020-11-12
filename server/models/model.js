@@ -57,7 +57,6 @@ class Model {
    * the conditions provided, only one will be provided upon fulfillment.
    */
   get(options) {
-    console.log(options);
     let parsedOptions = parseData(options);
     let queryString = `SELECT * FROM ${
       this.tablename
