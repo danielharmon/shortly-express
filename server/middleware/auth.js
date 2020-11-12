@@ -21,6 +21,19 @@ module.exports.createSession = (req, res, next) => {
         if (session) {
           req.session = session;
           next();
+        } else {
+          return models.Sessions.create()
+            .then((response) => {
+              return models.Sessions.get({ id: response.insertId });
+            })
+            .then((session) => {
+              req.session = session;
+              res.cookie('shortlyid', session.hash);
+              next();
+            })
+            .catch((err) => {
+              console.log(err);
+            });
         }
       }
     );

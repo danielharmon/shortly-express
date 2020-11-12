@@ -78,7 +78,7 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', Auth.createSession, (req, res) => {
   return models.Users.get({ username: req.body.username })
     .then((response) => {
       if (response) {
@@ -106,7 +106,7 @@ app.get('/signup', (req, res) => {
   res.render('signup');
 });
 
-app.post('/signup', (req, res) => {
+app.post('/signup', Auth.createSession, (req, res) => {
   models.Users.get({ username: req.body.username })
     .then((user) => {
       if (user) {
@@ -124,6 +124,7 @@ app.post('/signup', (req, res) => {
 
     .catch((err) => console.log(err));
 });
+
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
