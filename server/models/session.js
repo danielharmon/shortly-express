@@ -33,16 +33,15 @@ class Sessions extends Model {
    * match the options, the promise will only be fulfilled with one.
    */
   get(options) {
-    return super.get.call(this, options)
-      .then(session => {
-        if (!session || !session.userId) {
-          return session;
-        }
-        return Users.get({ id: session.userId }).then(user => {
-          session.user = user;
-          return session;
-        });
+    return super.get.call(this, options).then((session) => {
+      if (!session || !session.userId) {
+        return session;
+      }
+      return Users.get({ id: session.userId }).then((user) => {
+        session.user = user;
+        return session;
       });
+    });
   }
 
   /**
@@ -54,6 +53,13 @@ class Sessions extends Model {
     let data = utils.createRandom32String();
     let hash = utils.createHash(data);
     return super.create.call(this, { hash });
+  }
+
+  update(options, values) {
+    return super.update.call(this, options, values);
+  }
+  delete(options) {
+    return super.delete.call(this, options);
   }
 }
 
