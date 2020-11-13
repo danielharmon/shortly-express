@@ -376,6 +376,7 @@ describe('', function () {
   describe('Express Middleware', function () {
     var cookieParser = require('../server/middleware/cookieParser.js');
     var createSession = require('../server/middleware/auth.js').createSession;
+    const verifySession = require('../server/middleware/verifySession.js');
 
     describe('Cookie Parser', function () {
       it('parses cookies and assigns an object of key-value pairs to a session property on the request', function (done) {
@@ -532,6 +533,23 @@ describe('', function () {
           expect(cookie).to.exist;
           expect(cookie).to.not.equal(maliciousCookieHash);
           done();
+        });
+      });
+    });
+
+    describe('verifySession', function () {
+      it('should bind "isLoggedIn" property to request object', function (done) {
+        const request = httpMocks.createRequest();
+
+        const response = httpMocks.createResponse();
+        createSession(request, response, function () {
+          expect(request.session).to.exist;
+          request.session.user = {};
+          verifySession(request, response, function () {
+            expect(request.isLoggedIn).to.exist;
+            expect(request.isLoggedIn).to.be.true;
+            done();
+          });
         });
       });
     });
