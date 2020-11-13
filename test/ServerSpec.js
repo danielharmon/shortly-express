@@ -376,6 +376,7 @@ describe('', function () {
   describe('Express Middleware', function () {
     var cookieParser = require('../server/middleware/cookieParser.js');
     var createSession = require('../server/middleware/auth.js').createSession;
+    const verifySession = require('../server/middleware/verifySession.js');
 
     describe('Cookie Parser', function () {
       it('parses cookies and assigns an object of key-value pairs to a session property on the request', function (done) {
@@ -535,6 +536,23 @@ describe('', function () {
         });
       });
     });
+
+    describe('verifySession', function () {
+      it('should bind "isLoggedIn" property to request object', function (done) {
+        const request = httpMocks.createRequest();
+
+        const response = httpMocks.createResponse();
+        createSession(request, response, function () {
+          expect(request.session).to.exist;
+          request.session.user = {};
+          verifySession(request, response, function () {
+            expect(request.isLoggedIn).to.exist;
+            expect(request.isLoggedIn).to.be.true;
+            done();
+          });
+        });
+      });
+    });
   });
 
   describe('Sessions and cookies', function () {
@@ -646,7 +664,7 @@ describe('', function () {
     });
   });
 
-  xdescribe('Privileged Access:', function () {
+  describe('Privileged Access:', function () {
     it('Redirects to login page if a user tries to access the main page and is not signed in', function (done) {
       request('http://127.0.0.1:4568/', function (error, res, body) {
         if (error) {
@@ -678,7 +696,7 @@ describe('', function () {
     });
   });
 
-  xdescribe('Link creation:', function () {
+  describe('Link creation:', function () {
     var cookies = request.jar();
     var requestWithSession = request.defaults({ jar: cookies });
     var options = {
@@ -690,7 +708,7 @@ describe('', function () {
       },
     };
 
-    xbeforeEach(function (done) {
+    beforeEach(function (done) {
       var options = {
         method: 'POST',
         followAllRedirects: true,

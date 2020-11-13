@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
 const parseCookies = require('./middleware/cookieParser');
+const verifySession = require('./middleware/verifySession');
 
 const app = express();
 
@@ -16,16 +17,17 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(parseCookies);
+app.use(Auth.createSession);
 
-app.get('/', (req, res) => {
+app.get('/', verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/create', (req, res) => {
+app.get('/create', verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/links', (req, res, next) => {
+app.get('/links', verifySession, (req, res, next) => {
   models.Links.getAll()
     .then((links) => {
       res.status(200).send(links);
@@ -78,7 +80,7 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.post('/login', Auth.createSession, (req, res) => {
+app.post('/login', (req, res) => {
   return models.Users.get({ username: req.body.username })
     .then((response) => {
       if (response) {
@@ -88,7 +90,12 @@ app.post('/login', Auth.createSession, (req, res) => {
           response.salt
         );
         if (userValid) {
-          return res.redirect('/');
+          models.Sessions.update(
+            { hash: req.cookies.shortlyid },
+            { userId: response.id }
+          ).then(() => {
+            return res.redirect('/');
+          });
         } else {
           return res.redirect('/login');
         }
@@ -106,23 +113,36 @@ app.get('/signup', (req, res) => {
   res.render('signup');
 });
 
-app.post('/signup', Auth.createSession, (req, res) => {
+app.post('/signup', (req, res) => {
   models.Users.get({ username: req.body.username })
     .then((user) => {
       if (user) {
         return res.redirect('/signup');
-      } else {
-        return models.Users.create({
-          username: req.body.username,
-          password: req.body.password,
-        }).then(() => {
-          return res.status(201).redirect('/');
-          //add token logic
-        });
       }
+      return models.Users.create({
+        username: req.body.username,
+        password: req.body.password,
+      });
     })
-
+    .then((response) => {
+      models.Sessions.update(
+        { hash: req.session.hash },
+        { userId: response.insertId }
+      );
+      return res.redirect('/');
+    })
     .catch((err) => console.log(err));
+});
+
+app.get('/logout', (req, res) => {
+  models.Sessions.delete({ hash: req.session.hash })
+    .then(() => {
+      res.clearCookie('shortlyid');
+      res.redirect('/login');
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 /************************************************************/
