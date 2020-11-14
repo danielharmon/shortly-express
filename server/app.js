@@ -86,7 +86,15 @@ app.post('/links', (req, res, next) => {
 /************************************************************/
 
 app.get('/login', (req, res) => {
-  res.render('login');
+  if (!req.query.error) {
+    res.render('login', {
+      message: 'Welcome User. Please log in',
+    });
+  } else {
+    res.render('login', {
+      message: req.query.error,
+    });
+  }
 });
 
 app.post('/login', (req, res) => {
@@ -106,10 +114,12 @@ app.post('/login', (req, res) => {
             return res.redirect('/');
           });
         } else {
-          return res.redirect('/login');
+          req.error = { error: 'Invalid credentials' };
+          return res.redirect('/login/' + '?error=Invalid+Credentials');
         }
       } else {
-        return res.redirect('/login');
+        req.error = { error: 'Invalid credentials' };
+        return res.redirect('/login/' + '?error=Invalid+Credentials');
       }
     })
     .catch((err) => {
@@ -119,14 +129,18 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/signup', (req, res) => {
-  res.render('signup');
+  if (!req.query.error) {
+    res.render('signup', { message: 'Sign Up Today!' });
+  } else {
+    res.render('signup', { message: req.query.error });
+  }
 });
 
 app.post('/signup', (req, res) => {
   models.Users.get({ username: req.body.username })
     .then((user) => {
       if (user) {
-        return res.redirect('/signup');
+        return res.redirect('/signup' + '?error=Already+a+User+by+that+Name');
       }
       return models.Users.create({
         username: req.body.username,

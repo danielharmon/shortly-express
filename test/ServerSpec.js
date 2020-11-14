@@ -850,7 +850,7 @@ describe('', function () {
               res,
               body
             ) {
-              db.query("SELECT * FROM links WHERE title = 'Google'", function (
+              db.query('SELECT * FROM links WHERE title = "Google"', function (
                 err,
                 result
               ) {
