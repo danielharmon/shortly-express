@@ -21,21 +21,21 @@ app.use(Auth.createSession);
 
 app.get('/', verifySession, (req, res) => {
   if (!req.isLoggedIn) {
-    return res.redirect('/login');
+    return res.redirect('/login' + '?error=Must+be+logged+in');
   }
   res.render('index');
 });
 
 app.get('/create', verifySession, (req, res) => {
   if (!req.isLoggedIn) {
-    return res.redirect('/login');
+    return res.redirect('/login' + '?error=Must+be+logged+in');
   }
   res.render('index');
 });
 
 app.get('/links', verifySession, (req, res, next) => {
   if (!req.isLoggedIn) {
-    return res.redirect('/login');
+    return res.redirect('/login' + '?error=Must+be+logged+in');
   }
   models.Links.getAll()
     .then((links) => {
