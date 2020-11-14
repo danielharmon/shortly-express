@@ -20,14 +20,23 @@ app.use(parseCookies);
 app.use(Auth.createSession);
 
 app.get('/', verifySession, (req, res) => {
+  if (!req.isLoggedIn) {
+    return res.redirect('/login');
+  }
   res.render('index');
 });
 
 app.get('/create', verifySession, (req, res) => {
+  if (!req.isLoggedIn) {
+    return res.redirect('/login');
+  }
   res.render('index');
 });
 
 app.get('/links', verifySession, (req, res, next) => {
+  if (!req.isLoggedIn) {
+    return res.redirect('/login');
+  }
   models.Links.getAll()
     .then((links) => {
       res.status(200).send(links);
