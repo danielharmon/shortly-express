@@ -552,6 +552,20 @@ describe('', function () {
           });
         });
       });
+
+      it('should redirect to the login page when user is not logged in', function (done) {
+        const request = httpMocks.createRequest();
+
+        const response = httpMocks.createResponse();
+        createSession(request, response, function () {
+          expect(request.session).to.exist;
+          verifySession(request, response, function () {
+            expect(request.isLoggedIn).to.exist;
+            expect(request.isLoggedIn).to.be.false;
+            done();
+          });
+        });
+      });
     });
   });
 
@@ -830,7 +844,21 @@ describe('', function () {
           }
           var code = res.body.code;
           expect(code).to.equal(link.code);
-          done();
+          db.query('SELECT * FROM links ', function (err, link) {
+            request(link[0].baseUrl + '/' + link[0].code, function (
+              err,
+              res,
+              body
+            ) {
+              db.query('SELECT * FROM links WHERE title = "Google"', function (
+                err,
+                result
+              ) {
+                expect(result[0].visits).to.equal(1);
+                done();
+              });
+            });
+          });
         });
       });
 

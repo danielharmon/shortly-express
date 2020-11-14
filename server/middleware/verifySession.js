@@ -5,8 +5,8 @@ const verifySession = (req, res, next) => {
     req.isLoggedIn = true; // For testing purposes
     next();
   } else {
-    req.isLoggedIn = false; // For testing purposes
-    res.redirect('/login');
+    req.isLoggedIn = false;
+    next();
   }
 };
 
